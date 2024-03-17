@@ -34,8 +34,12 @@ func main() {
 	defer db.Close()
 
 	r := gin.Default()
-	r.GET("/add/:username", func(ctx *gin.Context) {
-		increase(ctx, db)
+	r.GET("/increment/:username", func(ctx *gin.Context) {
+		updateUserScore(1, ctx, db)
+	})
+
+	r.GET("/decrement/:username", func(ctx *gin.Context) {
+		updateUserScore(-1, ctx, db)
 	})
 
 	r.GET("/:username", func(ctx *gin.Context) {
@@ -84,7 +88,7 @@ func get(c *gin.Context, db *sql.DB) {
 	c.JSON(http.StatusOK, user)
 }
 
-func increase(c *gin.Context, db *sql.DB) {
+func updateUserScore(change int, c *gin.Context, db *sql.DB) {
 	username := c.Param("username")
 	user, err := getUserPackByUsername(username, db)
 
@@ -99,7 +103,7 @@ func increase(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	user, err = updateScore(username, user.PackCount+1, db)
+	user, err = updateScore(username, (uint)(max(0, (int)(user.PackCount)+change)), db)
 	if err != nil {
 		log.Fatalf("Error creating user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
@@ -107,6 +111,7 @@ func increase(c *gin.Context, db *sql.DB) {
 	}
 
 	c.JSON(http.StatusOK, user)
+
 }
 
 func createUser(username string, db *sql.DB) (UserPacks, error) {
