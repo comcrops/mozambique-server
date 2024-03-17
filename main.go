@@ -18,6 +18,7 @@ type UserPacks struct {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	err := godotenv.Load()
 
 	if err != nil {
@@ -50,7 +51,7 @@ func main() {
 		resetCount(ctx, db)
 	})
 
-	r.Run()
+	r.RunTLS("comcrops.at:8181", "/etc/letsencrypt/live/comcrops.at/cert.pem", "/etc/letsencrypt/live/comcrops.at/privkey.pem")
 }
 
 func loadDatabaseUrl() string {
