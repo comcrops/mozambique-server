@@ -46,6 +46,10 @@ func main() {
 		get(ctx, db)
 	})
 
+	r.GET("/reset/:username", func(ctx *gin.Context) {
+		resetCount(ctx, db)
+	})
+
 	r.Run()
 }
 
@@ -62,6 +66,23 @@ func loadDatabaseUrl() string {
 		log.Fatalf("Connection string wasn't found or is empty!")
 	}
 	return connectionString
+}
+
+func resetCount(c *gin.Context, db *sql.DB) {
+	username := c.Param("username")
+	user, err := getUserPackByUsername(username, db)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Fatalf("Error increasing row: %v", err)
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found try creating it first by getting it's score before increasing."})
+		}
+
+		log.Fatalf("Error scanning row: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
+		return
+	}
+
+	updateUserScore(-int(user.PackCount), c, db)
 }
 
 func get(c *gin.Context, db *sql.DB) {
@@ -94,8 +115,9 @@ func updateUserScore(change int, c *gin.Context, db *sql.DB) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Fatalf("Error increasing row: %v", err)
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found try creating it first by getting it's score before increasing."})
+			log.Fatalf("Error changing row: %v", err)
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found try creating it first by getting it's score before changing it."})
+			return
 		}
 
 		log.Fatalf("Error scanning row: %v", err)
