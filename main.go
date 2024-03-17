@@ -21,7 +21,7 @@ func main() {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Printf("Error loading .env file")
 	}
 
 	connectionString := loadDatabaseUrl()
@@ -29,7 +29,7 @@ func main() {
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
-		log.Fatalf("Error while connecting to db")
+		log.Printf("Error while connecting to db")
 	}
 	defer db.Close()
 
@@ -57,13 +57,13 @@ func loadDatabaseUrl() string {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Printf("Error loading .env file")
 	}
 
 	connectionString := os.Getenv("DATABASE_URL")
 
 	if connectionString == "" {
-		log.Fatalf("Connection string wasn't found or is empty!")
+		log.Printf("Connection string wasn't found or is empty!")
 	}
 	return connectionString
 }
@@ -73,11 +73,11 @@ func resetCount(c *gin.Context, db *sql.DB) {
 	user, err := getUserPackByUsername(username, db)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Fatalf("Error increasing row: %v", err)
+			log.Printf("Error increasing row: %v", err)
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found try creating it first by getting it's score before increasing."})
 		}
 
-		log.Fatalf("Error scanning row: %v", err)
+		log.Printf("Error scanning row: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
 		return
 	}
@@ -93,14 +93,14 @@ func get(c *gin.Context, db *sql.DB) {
 			createdUser, creationError := createUser(username, db)
 
 			if creationError != nil {
-				log.Fatalf("Error creating user: %v", err)
+				log.Printf("Error creating user: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error while creating new user"})
 				return
 			}
 			log.Printf("Created new user: %s", username)
 			user = createdUser
 		} else {
-			log.Fatalf("Error scanning row: %v", err)
+			log.Printf("Error scanning row: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
 			return
 		}
@@ -115,19 +115,19 @@ func updateUserScore(change int, c *gin.Context, db *sql.DB) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Fatalf("Error changing row: %v", err)
+			log.Printf("Error changing row: %v", err)
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found try creating it first by getting it's score before changing it."})
 			return
 		}
 
-		log.Fatalf("Error scanning row: %v", err)
+		log.Printf("Error scanning row: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
 		return
 	}
 
 	user, err = updateScore(username, (uint)(max(0, (int)(user.PackCount)+change)), db)
 	if err != nil {
-		log.Fatalf("Error creating user: %v", err)
+		log.Printf("Error creating user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error"})
 		return
 	}
