@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,10 +11,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type user struct {
+type UserPacks struct {
 	id        string
-	username  string
-	packCount string
+	Username  string
+	PackCount int
 }
 
 func main() {
@@ -32,25 +31,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error while connecting to db")
 	}
-
-	rows, err := db.Query("SELECT * FROM user_packs")
-
-	if err != nil {
-		log.Fatalf("Error reading the db")
-	}
-	defer rows.Close()
+	defer db.Close()
 
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		var res string
-		for rows.Next() {
-			rows.Scan(&res)
-			log.Println(res)
-
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+	r.GET("/:username", func(ctx *gin.Context) {
+		increase(ctx, db)
 	})
 	r.Run()
 }
@@ -70,7 +55,21 @@ func loadDatabaseUrl() string {
 	return connectionString
 }
 
-func increase() {
+func increase(c *gin.Context, db *sql.DB) {
+	username := c.Param("username")
+	row := db.QueryRow("SELECT * FROM user_packs WHERE username=$1", username)
 
+	var res UserPacks
+	err := row.Scan(&res.id, &res.Username, &res.PackCount)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("No rows were returned for username: %s", username)
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		log.Fatalf("Error scanning row: %v", err)
+	}
+
+	log.Println(res)
+	c.JSON(http.StatusOK, res)
 }
-
