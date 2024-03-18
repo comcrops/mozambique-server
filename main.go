@@ -19,11 +19,6 @@ type UserPacks struct {
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Printf("Error loading .env file")
-	}
 
 	connectionString := loadDatabaseUrl()
 
