@@ -47,7 +47,7 @@ func main() {
 	})
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"comcrops.at", "mozambique.comcrops.at"}
+	config.AllowOrigins = []string{"https://comcrops.at", "https://mozambique.comcrops.at"}
 	r.Use(cors.New(config))
 
 	r.RunTLS("comcrops.at:8181", "/etc/letsencrypt/live/comcrops.at/cert.pem", "/etc/letsencrypt/live/comcrops.at/privkey.pem")
