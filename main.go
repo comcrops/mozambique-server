@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -45,6 +45,10 @@ func main() {
 	r.GET("/reset/:username", func(ctx *gin.Context) {
 		resetCount(ctx, db)
 	})
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"comcrops.at", "mozambique.comcrops.at"}
+	r.Use(cors.New(config))
 
 	r.RunTLS("comcrops.at:8181", "/etc/letsencrypt/live/comcrops.at/cert.pem", "/etc/letsencrypt/live/comcrops.at/privkey.pem")
 }
